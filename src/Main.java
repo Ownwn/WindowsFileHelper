@@ -27,7 +27,9 @@ public class Main {
     }
 
     public static void showInExplorer(File file) {
-        String[] openInExplorer = {"explorer", "/select,", file.getAbsolutePath()};
+        String showArg = file.isDirectory() ? "/e," : "/select,";
+        String[] openInExplorer = {"explorer", showArg, file.getAbsolutePath()};
+        // todo why does this give non-zero value on success?
         runCommand(openInExplorer);
     }
 
@@ -51,10 +53,14 @@ public class Main {
         try {
             int res = new ProcessBuilder(command).start().waitFor();
             if (res != 0) {
-                throw new RuntimeException("Command gave non-zero exit value " + command);
+                throw new RuntimeException("Command gave non-zero exit value: " + getCommandFriendly(command));
             }
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Exception running command" + command);
+            throw new RuntimeException("Exception running command" + getCommandFriendly(command));
         }
+    }
+
+    public static String getCommandFriendly(String[] command) {
+        return String.join(" ", command);
     }
 }

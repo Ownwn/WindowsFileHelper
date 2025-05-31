@@ -1,35 +1,41 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class Main {
-    public static final Set<String> zipEndings = Set.of("zip", "7z", "tar");
+    public static final Set<String> zipEndings = Set.of("zip", "7z", "tar", "jar");
     public static final String sevenZipLocation = "C:\\Program Files\\7-Zip\\7z.exe";
+
+    public static final Path downloadsPath = Paths.get(System.getProperty("user.home"), "Downloads");
+
     public static void main(String[] args) {
         if (!System.getProperty("os.name").toLowerCase().startsWith("windows")) {
             throw new RuntimeException("Only windows supported!");
         }
 
-        Path downloadsPath = Path.of("C:/Users/Owen/Downloads");
+
         File[] fileArray = downloadsPath.toFile().listFiles();
-        if (fileArray == null || fileArray.length == 0) { // todo dir might be empty?
+        if (fileArray == null) { // todo dir might be empty?
             throw new RuntimeException("Cannot find files!");
         }
 
-        List<File> files = Arrays.asList(fileArray);
-        File latestFile = files.stream().max(Comparator.comparingLong(File::lastModified)).get();
+        Optional<File> latestFile = getLatestFile(fileArray);
+        if (latestFile.isEmpty()) {
+            return; // todo sound effect?
+        }
+        showInExplorer(latestFile.get());
+    }
 
-        extractAndShow(latestFile);
+    public static Optional<File> getLatestFile(File[] files) {
+        return Optional.ofNullable(files)
+                .map(Arrays::stream)
+                .flatMap(stream -> stream.max(Comparator.comparingLong(File::lastModified)));
     }
 
     public static void showInExplorer(File file) {
-        String showArg = file.isDirectory() ? "/e," : "/select,";
-        String[] openInExplorer = {"explorer", showArg, file.getAbsolutePath()};
-        // todo why does this give non-zero value on success?
+        String[] openInExplorer = {"explorer", "/select,", file.getAbsolutePath()};
         runCommand(openInExplorer);
     }
 
@@ -52,7 +58,7 @@ public class Main {
     public static void runCommand(String[] command) {
         try {
             int res = new ProcessBuilder(command).start().waitFor();
-            if (res != 0) {
+            if (res != 0 && res != 1) { // gives exit code of 1 on success for some reason
                 throw new RuntimeException("Command gave non-zero exit value: " + getCommandFriendly(command));
             }
         } catch (IOException | InterruptedException e) {

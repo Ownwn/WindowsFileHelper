@@ -2,7 +2,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.Set;
 
 public class Main {
     public static final Set<String> zipEndings = Set.of("zip", "7z", "tar", "jar");
@@ -15,17 +18,19 @@ public class Main {
             throw new RuntimeException("Only windows supported!");
         }
 
+        HotkeyListener.init(() -> {
+            File[] fileArray = downloadsPath.toFile().listFiles();
+            if (fileArray == null) { // todo dir might be empty?
+                throw new RuntimeException("Cannot find files!");
+            }
 
-        File[] fileArray = downloadsPath.toFile().listFiles();
-        if (fileArray == null) { // todo dir might be empty?
-            throw new RuntimeException("Cannot find files!");
-        }
+            Optional<File> latestFile = getLatestFile(fileArray);
+            if (latestFile.isEmpty()) {
+                return; // todo sound effect?
+            }
+            showInExplorer(latestFile.get());
+        });
 
-        Optional<File> latestFile = getLatestFile(fileArray);
-        if (latestFile.isEmpty()) {
-            return; // todo sound effect?
-        }
-        showInExplorer(latestFile.get());
     }
 
     public static Optional<File> getLatestFile(File[] files) {
@@ -34,6 +39,9 @@ public class Main {
                 .flatMap(stream -> stream.max(Comparator.comparingLong(File::lastModified)));
     }
 
+    /**
+     * Warning: will also open on hidden desktop.ini file
+     */
     public static void showInExplorer(File file) {
         String[] openInExplorer = {"explorer", "/select,", file.getAbsolutePath()};
         runCommand(openInExplorer);

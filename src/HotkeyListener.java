@@ -5,10 +5,12 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 
 public class HotkeyListener implements NativeKeyListener {
     final int modifierKey = NativeKeyEvent.VC_CONTROL;
-    final int finisherKey = NativeKeyEvent.VC_K;
+    final int modifierKey2 = NativeKeyEvent.VC_SHIFT;
+    final int finisherKey = NativeKeyEvent.VC_QUOTE;
     private final Runnable action;
 
     boolean modifierDown = false;
+    boolean modifierDown2 = false;
 
     public HotkeyListener(Runnable action) {
         this.action = action;
@@ -32,11 +34,14 @@ public class HotkeyListener implements NativeKeyListener {
     public void nativeKeyPressed(NativeKeyEvent e) {
         int key = e.getKeyCode();
 
-        if (key == modifierKey) {
-            modifierDown = true;
-        }
-        if (key == finisherKey && modifierDown) {
-            action.run();
+        switch (key) {
+            case modifierKey -> modifierDown = true;
+            case modifierKey2 -> modifierDown2 = true;
+            case finisherKey -> {
+                if (modifierDown && modifierDown2) {
+                    action.run();
+                }
+            }
         }
     }
 
@@ -44,6 +49,8 @@ public class HotkeyListener implements NativeKeyListener {
     public void nativeKeyReleased(NativeKeyEvent e) {
         if (e.getKeyCode() == modifierKey) {
             modifierDown = false;
+        } else if (e.getKeyCode() == modifierKey2) {
+            modifierDown2 = false;
         }
     }
 }

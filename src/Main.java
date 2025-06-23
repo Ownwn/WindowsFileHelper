@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,13 +24,15 @@ public class Main {
 
     public static void showLatestDownloadsFile() {
         File[] fileArray = downloadsPath.toFile().listFiles();
-        if (fileArray == null) { // todo dir might be empty?
+        if (fileArray == null) {
+            Toolkit.getDefaultToolkit().beep();
             throw new RuntimeException("Cannot find files!");
         }
 
         Optional<File> latestFile = getLatestFile(fileArray);
         if (latestFile.isEmpty()) {
-            return; // todo sound effect?
+            Toolkit.getDefaultToolkit().beep();
+            return;
         }
         showInExplorer(latestFile.get());
     }

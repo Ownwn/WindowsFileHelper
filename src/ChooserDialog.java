@@ -2,20 +2,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ChooserDialog {
-    private static Frame frame = null;
-    private static Map<String, Runnable> runnables = new HashMap<>();
+    private Frame frame = null;
+    private final Map<String, Runnable> runnables;
 
-    private static JButton createButton(String text, Runnable action) {
+    private JButton createButton(String text, Runnable action) {
         JButton button = new JButton(text);
         button.addActionListener(_ -> action.run());
         return button;
     }
 
-    public static Panel getButtonsPanel() {
+    public Panel getButtonsPanel() {
         Panel panel = new Panel();
         for (var runnableEntry : runnables.entrySet()) {
             panel.add(createButton(runnableEntry.getKey(), runnableEntry.getValue()));
@@ -24,9 +23,17 @@ public class ChooserDialog {
         return panel;
     }
 
-    public static void open(Map<String, Runnable> map) {
+    public ChooserDialog(Map<String, Runnable> map) {
         runnables = map;
-        frame = new Frame("File Helper");
+        open();
+    }
+
+    public void open() {
+        if (frame != null) {
+            frame.dispose();
+        }
+
+        frame = new Frame("");
         frame.setSize(300, 200);
         frame.setLayout(new FlowLayout());
         Point mouse = MouseInfo.getPointerInfo().getLocation();
@@ -44,6 +51,16 @@ public class ChooserDialog {
             @Override
             public void windowDeactivated(WindowEvent e) {
                 frame.dispose();
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                frame.dispose();
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+                super.windowDeiconified(e);
             }
         });
 

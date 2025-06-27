@@ -17,7 +17,7 @@ public class Main {
         }
 
         HotkeyListener.init(() -> {
-            ChooserDialog.open(Map.of("Show latest download", Main::showLatestDownloadsFile));
+            new ChooserDialog(Map.of("Show latest download", Main::showLatestDownloadsFile));
         });
 
     }

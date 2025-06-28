@@ -1,8 +1,10 @@
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public class Main {
@@ -10,6 +12,7 @@ public class Main {
     public static final String sevenZipLocation = "C:\\Program Files\\7-Zip\\7z.exe";
 
     public static final Path downloadsPath = Paths.get(System.getProperty("user.home"), "Downloads");
+    public static final Path randomPath = Path.of("C:\\Home\\Area\\Random"); // todo customisable
 
     public static void main(String[] args) {
         if (!System.getProperty("os.name").toLowerCase().startsWith("windows")) {
@@ -17,24 +20,53 @@ public class Main {
         }
 
         HotkeyListener.init(() -> {
-            new ChooserDialog(Map.of("Show latest download", Main::showLatestDownloadsFile));
+            Map<String, Runnable> buttons = new LinkedHashMap<>();
+            buttons.put("Show latest download", Main::showLatestDownloadsFile);
+            buttons.put("Move download to Random", Main::moveLatestDownloadToRandom);
+            new ChooserDialog(buttons);
         });
 
     }
 
-    public static void showLatestDownloadsFile() {
+    public static Optional<File> getLatestDownload() {
         File[] fileArray = downloadsPath.toFile().listFiles();
         if (fileArray == null) {
             Toolkit.getDefaultToolkit().beep();
             throw new RuntimeException("Cannot find files!");
         }
+        return getLatestFile(fileArray);
+    }
 
-        Optional<File> latestFile = getLatestFile(fileArray);
+    public static void showLatestDownloadsFile() {
+        Optional<File> latestFile = getLatestDownload();
         if (latestFile.isEmpty()) {
             Toolkit.getDefaultToolkit().beep();
             return;
         }
         showInExplorer(latestFile.get());
+    }
+
+    public static void moveLatestDownloadToRandom() {
+        File latestFile = getLatestDownload().orElseThrow(() -> {
+            Toolkit.getDefaultToolkit().beep();
+            return new RuntimeException("Missing file");
+        });
+
+        File randomFiles = randomPath.toFile();
+        if (!randomFiles.exists() || !randomFiles.isDirectory()) {
+            Toolkit.getDefaultToolkit().beep();
+            return;
+        }
+        try {
+            Path newFilePath = randomPath.resolve(latestFile.getName());
+            if (newFilePath.toFile().exists()) {
+                throw new UnsupportedOperationException("Duplicate file!");
+            }
+            Files.move(latestFile.toPath(),newFilePath, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException | UnsupportedOperationException e) {
+            Toolkit.getDefaultToolkit().beep();
+            throw new RuntimeException(e);
+        }
     }
 
     public static Optional<File> getLatestFile(File[] files) {

@@ -32,7 +32,6 @@ public class HotkeyListener implements NativeKeyListener {
     @Override
     public void nativeKeyPressed(NativeKeyEvent e) {
         int key = e.getKeyCode();
-        System.out.println(e.getModifiers());
         if (key == finisherKey && e.getModifiers() == (firstMask | secondMask)) {
             SwingUtilities.invokeLater(action);
         }

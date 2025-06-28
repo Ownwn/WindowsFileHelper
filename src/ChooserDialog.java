@@ -10,7 +10,15 @@ public class ChooserDialog {
 
     private JButton createButton(String text, Runnable action) {
         JButton button = new JButton(text);
-        button.addActionListener(_ -> action.run());
+        button.addActionListener(_ -> {
+            try {
+                action.run();
+            } catch (Exception e) {
+                frame.setTitle(e.getMessage());
+                throw e;
+            }
+
+        });
         return button;
     }
 

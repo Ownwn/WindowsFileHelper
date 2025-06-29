@@ -63,6 +63,7 @@ public class Main {
                 throw new UnsupportedOperationException("Duplicate file!");
             }
             Files.move(latestFile.toPath(),newFilePath, StandardCopyOption.ATOMIC_MOVE);
+            showInExplorer(newFilePath.toFile());
         } catch (IOException | UnsupportedOperationException e) {
             Toolkit.getDefaultToolkit().beep();
             throw new RuntimeException(e);

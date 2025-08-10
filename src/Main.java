@@ -80,7 +80,7 @@ public class Main {
      * Warning: will also open on hidden desktop.ini file
      */
     public static void showInExplorer(File file) {
-        String[] openInExplorer = {"explorer", "/select,", file.getAbsolutePath()};
+        CommandCall openInExplorer = new CommandCall("explorer", "/select,", file.getAbsolutePath());
         runCommand(openInExplorer);
     }
 
@@ -94,24 +94,34 @@ public class Main {
             throw new RuntimeException("Extraction folder already exists!");
         }
 
-        String[] unzip = {sevenZipLocation, "e", file.getAbsolutePath(), "-o" + newFolder.getAbsolutePath()};
+        CommandCall unzip = new CommandCall(sevenZipLocation, "e", file.getAbsolutePath(), "-o", newFolder.getAbsolutePath());
         runCommand(unzip);
 
         showInExplorer(newFolder);
     }
 
-    public static void runCommand(String[] command) {
+    public static void runCommand(CommandCall command) {
         try {
-            int res = new ProcessBuilder(command).start().waitFor();
+            int res = new ProcessBuilder(command.getCommand()).start().waitFor();
             if (res != 0 && res != 1) { // gives exit code of 1 on success for some reason
-                throw new RuntimeException("Command gave non-zero exit value: " + getCommandFriendly(command));
+                throw new RuntimeException("Command gave non-zero exit value: " + command);
             }
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Exception running command" + getCommandFriendly(command));
+            throw new RuntimeException("Exception running command" + command);
         }
     }
 
-    public static String getCommandFriendly(String[] command) {
-        return String.join(" ", command);
+    record CommandCall(String name, String... args) {
+        public String[] getCommand() {
+            String[] cmd = new String[args.length + 1];
+            System.arraycopy(args, 0, cmd, 1, args.length);
+            cmd[0] = name;
+            return cmd;
+        }
+
+        @Override
+        public String toString() {
+            return name + String.join(" ", args);
+        }
     }
 }

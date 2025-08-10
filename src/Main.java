@@ -23,6 +23,7 @@ public class Main {
             Map<String, Runnable> buttons = new LinkedHashMap<>();
             buttons.put("Show latest download", Main::showLatestDownloadsFile);
             buttons.put("Move download to Random", Main::moveLatestDownloadToRandom);
+            buttons.put("Open cmd in Random", Main::openCmd);
             new ChooserDialog(buttons);
         });
 
@@ -44,6 +45,11 @@ public class Main {
             return;
         }
         showInExplorer(latestFile.get());
+    }
+
+    public static void openCmd() {
+        CommandCall cmd = new CommandCall("cmd.exe", "/c", "start", "/D", randomPath.toString());
+        runCommand(cmd);
     }
 
     public static void moveLatestDownloadToRandom() {
@@ -121,7 +127,7 @@ public class Main {
 
         @Override
         public String toString() {
-            return name + String.join(" ", args);
+            return name + " " + String.join(" ", args);
         }
     }
 }

@@ -24,9 +24,26 @@ public class Main {
             buttons.put("Show latest download", Main::showLatestDownloadsFile);
             buttons.put("Move download to Random", Main::moveLatestDownloadToRandom);
             buttons.put("Open cmd in Random", Main::openCmd);
+            buttons.put("Trash latest Download", Main::trashLatestDownload);
             new ChooserDialog(buttons);
         });
 
+    }
+
+    public static void trashLatestDownload() {
+        getLatestDownload().ifPresentOrElse(Main::trashFile, () -> {
+            Toolkit.getDefaultToolkit().beep();
+            throw new RuntimeException("Latest download not found!");
+        });
+    }
+
+    public static void trashFile(File file) {
+        if (Desktop.isDesktopSupported()) {
+            Desktop desktop = Desktop.getDesktop();
+            if (desktop.isSupported(Desktop.Action.MOVE_TO_TRASH)) {
+                desktop.moveToTrash(file);
+            }
+        }
     }
 
     public static Optional<File> getLatestDownload() {
